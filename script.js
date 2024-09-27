@@ -1,12 +1,12 @@
 const gameboard = (function() {
-    let grid = ["","","",
-                "","","",
-                "","",""];
+    const grid = Array.from(document.querySelectorAll(".space"));
 
     const setMarker = (player, selection) => {
-        grid[selection] === "" ? 
-        grid[selection] = player.marker : 
-        alert("This spot has already been taken.");
+        if (grid[selection].textContent === "") { 
+            grid[selection].textContent = player.marker;
+            game.incTurn();
+        }
+        else alert("This spot has already been taken.");
     }
 
     return { grid, setMarker };
@@ -15,52 +15,57 @@ const gameboard = (function() {
 
 
 function player(playerNum, name="") {
-    let marker = playerNum === 1 ? "x" : "o";
-    let markerCount = 0;
+    let marker = playerNum === 1 ? "X" : "O";
 
-    const incMarkerCount = () => {
-        if (markerCount < 3) markerCount++;
-    };
+    if (name === null || name === "") name = `Player ${playerNum}`;
 
-    return { playerNum, name, marker, incMarkerCount };
+    return { playerNum, name, marker };
 }
 
 
 
 const game = (function() {
     
-    const player1 = player(1, prompt("Player 1 - You will go first and have 'x' markers.\nPlease enter your name:"));
-    const player2 = player(2, prompt("Player 2 - You will have 'o' markers.\nPlease enter your name:"));
-
-    const spaces = document.querySelectorAll(".space");
+    const player1 = player(1, prompt("Player 1 - You will go first and have 'X' markers.\nPlease enter your name:"));
+    const player2 = player(2, prompt("Player 2 - You will have 'O' markers.\nPlease enter your name:"));
 
     let turnCount = 1;
     let currentplayer;
+
+    const incTurn = () => turnCount++;
     
     const checkWin = () => {
-        if (gameboard.grid.slice(0,3).every(value => value === currentplayer.marker) ||
-            gameboard.grid.slice(3,6).every(value => value === currentplayer.marker) ||
-            gameboard.grid.slice(6).every(value => value === currentplayer.marker) ||
 
-            [gameboard.grid[0], gameboard.grid[3], gameboard.grid[6]].every(value => value === currentplayer.marker) ||
-            [gameboard.grid[1], gameboard.grid[4], gameboard.grid[7]].every(value => value === currentplayer.marker) ||
-            [gameboard.grid[2], gameboard.grid[5], gameboard.grid[8]].every(value => value === currentplayer.marker) ||
+        const winningPatterns = [gameboard.grid.slice(0,3), gameboard.grid.slice(3,6), gameboard.grid.slice(6),
+            [gameboard.grid[0], gameboard.grid[3], gameboard.grid[6]], 
+            [gameboard.grid[1], gameboard.grid[4], gameboard.grid[7]],
+            [gameboard.grid[2], gameboard.grid[5], gameboard.grid[8]],
+            [gameboard.grid[0], gameboard.grid[4], gameboard.grid[8]],
+            [gameboard.grid[2], gameboard.grid[4], gameboard.grid[6]]
+        ];
 
-            [gameboard.grid[0], gameboard.grid[4], gameboard.grid[8]].every(value => value === currentplayer.marker) ||
-            [gameboard.grid[2], gameboard.grid[4], gameboard.grid[6]].every(value => value === currentplayer.marker)) {
+        let endGame = false;
 
-                alert(`Player ${currentplayer.playerNum} wins!`);
-            }
-        else if (gameboard.grid.every(value => value !== "")) {
+        for (const pattern of winningPatterns) {
+            if (pattern.every(value => value.textContent === currentplayer.marker)) {
+                
+                alert(`${currentplayer.name} wins!`);
+                pattern.forEach(value => value.style.color = "red");
+                endGame = true;
+                break;
+
+            } else if (gameboard.grid.every(value => value.textContent !== "") && winningPatterns[7] === pattern) {
                 alert("It's a tie!");
-        } else {
-                turnCount++;
-        }
+                endGame = true;
+            }
+        } 
+        
+        
     };
 
 
-    for (const space of spaces) {
-        space.addEventListener("click", () => {
+    for (const space of gameboard.grid) {
+        space.addEventListener("click", e => {
             const spaceID = space.id;
 
             turnCount % 2 !== 0 ? 
@@ -69,13 +74,11 @@ const game = (function() {
 
             gameboard.setMarker(currentplayer, spaceID);
 
-            displayController.displayMarker();
-
             checkWin();
         });
     }
 
-    return { player1, player2, spaces };
+    return { player1, player2, incTurn };
 
 })();
 
@@ -84,13 +87,6 @@ const game = (function() {
 const displayController = (function() {
     const displayMarker = () => {
 
-        for (let i = 0; i < gameboard.grid.length; i++) {
-
-            //set markers based on gameboard.grid elements
-            if (gameboard.grid[i] === "x") game.spaces[i].textContent = "X";
-            else if (gameboard.grid[i] === "o") game.spaces[i].textContent = "O";
-            
-        }
     }
 
     return { displayMarker };
