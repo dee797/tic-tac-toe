@@ -31,6 +31,10 @@ body {
     background-color: black;
 }
 
-#status {
+#reset:hover {
+    cursor: pointer;
+}
+
+#status, #reset {
     font-size: 1.5rem;
 }
