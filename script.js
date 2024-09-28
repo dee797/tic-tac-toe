@@ -4,9 +4,12 @@ const gameboard = (function() {
     const setMarker = (player, selection) => {
         if (grid[selection].textContent === "") { 
             grid[selection].textContent = player.marker;
-            game.incTurn();
+            return true;
         }
-        else alert("This spot has already been taken.");
+        else {
+            alert("This spot has already been taken.");
+            return false;
+        }
     }
 
     return { grid, setMarker };
@@ -19,7 +22,7 @@ function player(playerNum, name="") {
 
     if (name === null || name === "") name = `Player ${playerNum}`;
 
-    return { playerNum, name, marker };
+    return { name, marker };
 }
 
 
@@ -29,10 +32,16 @@ const game = (function() {
     const player1 = player(1, prompt("Player 1 - You will go first and have 'X' markers.\nPlease enter your name:"));
     const player2 = player(2, prompt("Player 2 - You will have 'O' markers.\nPlease enter your name:"));
 
-    let turnCount = 1;
-    let currentplayer;
+    let currentplayer = player1;
+    let endGame = false;
 
-    const incTurn = () => turnCount++;
+    const getCurrentPlayerName = () => currentplayer.name;
+    const getPlayer1Name = () => player1.name;
+    const getPlayer2Name = () => player2.name;
+
+    const changeCurrentPlayer = () => {
+        currentplayer = currentplayer === player1 ? player2 : player1;
+    };
     
     const checkWin = () => {
 
@@ -44,13 +53,12 @@ const game = (function() {
             [gameboard.grid[2], gameboard.grid[4], gameboard.grid[6]]
         ];
 
-        let endGame = false;
-
         for (const pattern of winningPatterns) {
             if (pattern.every(value => value.textContent === currentplayer.marker)) {
                 
                 alert(`${currentplayer.name} wins!`);
                 pattern.forEach(value => value.style.color = "red");
+                displayController.displayWinner();
                 endGame = true;
                 break;
 
@@ -58,40 +66,61 @@ const game = (function() {
                 alert("It's a tie!");
                 endGame = true;
             }
-        } 
-        
+        }
+
+        if (endGame) return true;
+        else return false;
+
         
     };
 
 
     for (const space of gameboard.grid) {
         space.addEventListener("click", e => {
-            const spaceID = space.id;
+            if (!endGame) {
+                const spaceID = space.id;
 
-            turnCount % 2 !== 0 ? 
-            currentplayer = player1 :
-            currentplayer = player2;
+                const setMarker = gameboard.setMarker(currentplayer, spaceID);
 
-            gameboard.setMarker(currentplayer, spaceID);
+                const isWinner = checkWin();
 
-            checkWin();
+                if (!isWinner && setMarker) {
+                    changeCurrentPlayer();
+                    displayController.displayTurn();
+                }
+
+            } else e.preventDefault();
         });
     }
 
-    return { player1, player2, incTurn };
+    return { getPlayer1Name, getPlayer2Name, getCurrentPlayerName };
 
 })();
 
 
 
 const displayController = (function() {
-    const displayMarker = () => {
-
+    const displayNames = () => {
+        document.querySelector("#nameContainer1").textContent = `${game.getPlayer1Name()}: Has 'X' markers`;
+        document.querySelector("#nameContainer2").textContent = `${game.getPlayer2Name()}: Has 'O' markers`;
     }
 
-    return { displayMarker };
+    const displayTurn = () => {
+        document.querySelector("#currentTurn").textContent = `${game.getCurrentPlayerName()}'s`;
+    }
+
+    const displayWinner = () => {
+        document.querySelector("#status").textContent = `${game.getCurrentPlayerName()} wins!`;
+        document.querySelector("#status").style.fontWeight = "bold";
+    }
+
+    return { displayNames, displayTurn, displayWinner };
 })();
 
+
+
+displayController.displayNames();
+displayController.displayTurn();
 
 // IIFE instantly executes code within factory function,
 // no need to instantiate object outside of definition
