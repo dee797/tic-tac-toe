@@ -59,6 +59,7 @@ const game = (function() {
                 alert(`${currentplayer.name} wins!`);
                 pattern.forEach(value => value.style.color = "red");
                 displayController.displayWinner();
+                document.querySelector("#reset").textContent = "Start New Game";
                 endGame = true;
                 break;
 
@@ -113,6 +114,10 @@ const displayController = (function() {
         document.querySelector("#status").textContent = `${game.getCurrentPlayerName()} wins!`;
         document.querySelector("#status").style.fontWeight = "bold";
     }
+
+    document.querySelector("#reset").addEventListener("click", () => {
+        location.reload();
+    })
 
     return { displayNames, displayTurn, displayWinner };
 })();
