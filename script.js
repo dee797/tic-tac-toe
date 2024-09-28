@@ -58,21 +58,21 @@ const game = (function() {
                 
                 alert(`${currentplayer.name} wins!`);
                 pattern.forEach(value => value.style.color = "red");
-                displayController.displayWinner();
-                document.querySelector("#reset").textContent = "Start New Game";
+                displayController.displayResults(false);
+                displayController.changeButtonText();
                 endGame = true;
                 break;
 
             } else if (gameboard.grid.every(value => value.textContent !== "") && winningPatterns[7] === pattern) {
                 alert("It's a tie!");
+                displayController.displayResults(true);
+                displayController.changeButtonText();
                 endGame = true;
             }
         }
 
         if (endGame) return true;
         else return false;
-
-        
     };
 
 
@@ -110,16 +110,22 @@ const displayController = (function() {
         document.querySelector("#currentTurn").textContent = `${game.getCurrentPlayerName()}'s`;
     }
 
-    const displayWinner = () => {
-        document.querySelector("#status").textContent = `${game.getCurrentPlayerName()} wins!`;
-        document.querySelector("#status").style.fontWeight = "bold";
+    const displayResults = (isTie) => {
+        const status = document.querySelector("#status");
+        if (!isTie) status.textContent = `${game.getCurrentPlayerName()} wins!`;
+        else status.textContent = "It's a tie!";
+        status.style.fontWeight = "bold";
+    }
+    
+    const changeButtonText = () => {
+        document.querySelector("#reset").textContent = "Start New Game";
     }
 
     document.querySelector("#reset").addEventListener("click", () => {
         location.reload();
-    })
+    });
 
-    return { displayNames, displayTurn, displayWinner };
+    return { displayNames, displayTurn, displayResults, changeButtonText };
 })();
 
 
